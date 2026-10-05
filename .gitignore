@@ -1,0 +1,12 @@
+node_modules/
+dist/
+release/
+*.log
+.env
+.env.*
+!.env.example
+*.exe
+*.zip
+*.7z
+*.blockmap
+.DS_Store
