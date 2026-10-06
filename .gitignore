@@ -10,3 +10,5 @@ release/
 *.7z
 *.blockmap
 .DS_Store
+Data/
+.build-cache/

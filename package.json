@@ -1,11 +1,15 @@
 {
   "name": "crawlflow",
   "productName": "CrawlFlow",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "面向零代码用户的 Windows 可视化网页采集工具",
   "author": "CrawlFlow",
   "private": true,
-  "overrides": { "exceljs": { "uuid": "11.1.1" } },
+  "overrides": {
+    "exceljs": {
+      "uuid": "11.1.1"
+    }
+  },
   "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
@@ -15,6 +19,7 @@
     "prepare:runtime": "node -e \"require('electron')\"",
     "package": "npm run build && npm run prepare:runtime && electron-builder --win portable --x64",
     "package:installer": "npm run build && npm run prepare:runtime && electron-builder --win nsis --x64",
+    "package:release": "npm run build && npm run prepare:runtime && electron-builder --win portable nsis --x64",
     "package:dir": "npm run build && npm run prepare:runtime && electron-builder --win --x64 --dir"
   },
   "dependencies": {
@@ -34,15 +39,35 @@
     "appId": "local.crawlflow.desktop",
     "productName": "CrawlFlow",
     "artifactName": "CrawlFlow-${version}-Windows-x64.${ext}",
-    "directories": { "output": "release" },
-    "files": ["dist/**/*", "electron/**/*", "build/icon.ico", "package.json"],
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "!electron/**/*.test.cjs",
+      "build/icon.ico",
+      "package.json"
+    ],
     "asar": true,
     "npmRebuild": false,
     "electronDist": "node_modules/electron/dist",
-    "toolsets": { "nsis": "1.2.1" },
-    "win": { "target": ["portable"], "signExecutable": false, "icon": "build/icon.ico", "executableName": "CrawlFlow" },
-    "portable": { "requestExecutionLevel": "user" },
+    "toolsets": {
+      "nsis": "1.2.1"
+    },
+    "win": {
+      "target": [
+        "portable"
+      ],
+      "signExecutable": false,
+      "icon": "build/icon.ico",
+      "executableName": "CrawlFlow"
+    },
+    "portable": {
+      "requestExecutionLevel": "user"
+    },
     "nsis": {
+      "include": "build/installer.nsh",
       "artifactName": "CrawlFlow-${version}-Setup-x64.${ext}",
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
@@ -52,7 +77,10 @@
       "shortcutName": "CrawlFlow",
       "deleteAppDataOnUninstall": false,
       "runAfterFinish": true,
-      "installerLanguages": ["zh_CN", "en_US"],
+      "installerLanguages": [
+        "zh_CN",
+        "en_US"
+      ],
       "language": "2052"
     }
   }

@@ -1,32 +1,819 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Globe2, ExternalLink, ScanLine, MousePointer2, Loader2, Plus, GripVertical, FileText, Image, Link2, Table2, CalendarDays, MoreHorizontal, Minus, Clock3, ShieldCheck, Database, Activity, ArrowUpRight, Search, Download, Brush, Trash2, Maximize2, Inbox, ChevronLeft, ChevronRight, X, ArrowRight, CircleHelp } from 'lucide-react';
+import { useEffect, useMemo, useState } from "react";
+import {
+  Globe2,
+  ExternalLink,
+  ScanLine,
+  MousePointer2,
+  Loader2,
+  Plus,
+  GripVertical,
+  FileText,
+  Image,
+  Link2,
+  Table2,
+  CalendarDays,
+  MoreHorizontal,
+  Minus,
+  Clock3,
+  ShieldCheck,
+  Database,
+  Activity,
+  ArrowUpRight,
+  Search,
+  Download,
+  Brush,
+  Trash2,
+  Maximize2,
+  Inbox,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  ArrowRight,
+  CircleHelp,
+  Save,
+} from "lucide-react";
 
-export function Switch({checked,onChange,label,disabled}) {return <button className={`toggle ${checked?'on':''}`} type="button" role="switch" aria-checked={checked} aria-label={label} disabled={disabled} onClick={()=>onChange(!checked)}><span/></button>;}
-function Step({number,title,children}) {return <div className="panel-title"><span className="step-number">{number}</span><h2>{title}</h2>{children}</div>;}
-export function WebsitePanel({config,update,site,busy,onInspect,onOpen,onPreview,onDemo,expanded}) {
-  return <section className={`panel website-panel ${expanded?'expanded':''}`}><div className="panel-head"><Step number="1" title="网站预览"/><span className="panel-hint">在网页中点选内容，或使用自动识别</span><button className="text-button demo-link" disabled={!!busy} onClick={onDemo}>试用示例</button></div><div className="browser-toolbar"><label className="url-control"><Globe2 size={16}/><input aria-label="网页网址" placeholder="粘贴要采集的网页地址" value={config.url} disabled={!!busy} onChange={e=>update('url',e.target.value)} onKeyDown={e=>{if(e.key==='Enter')onInspect();}}/></label><button className="button compact open-page" disabled={!!busy} onClick={onOpen}><ExternalLink size={14}/><span>打开页面</span></button><button className="button compact blue-outline" disabled={!!busy} onClick={onInspect}>{busy==='inspect'?<Loader2 className="spinning" size={15}/>:<ScanLine size={15}/>}自动识别</button><button className="button compact test-rule" disabled={!!busy} onClick={onPreview}><MousePointer2 size={14}/>测试规则</button></div><div className="website-canvas">{site?.image?<><img className="website-screenshot" src={site.image} alt={`${site.title}的真实网页预览`}/><button className="screenshot-open" onClick={onOpen} disabled={!!busy}><ExternalLink size={13}/>打开网页操作</button><span className="preview-origin"><span/>{site.isDemo?'本地练习网站':new URL(site.url).hostname}<i>网页快照</i></span></>:<div className="preview-empty"><div className="preview-window"><div/><Globe2 size={49} strokeWidth={1}/></div><h3>从你感兴趣的网页开始</h3><p>粘贴网址，点击「自动识别」查看内容。</p><button className="button primary" disabled={!!busy} onClick={onDemo}>打开练习示例<ArrowRight size={15}/></button></div>}{busy==='inspect'&&<div className="preview-loading"><Loader2 className="spinning" size={27}/><strong>正在读取网页</strong><span>生成预览并识别可采集的字段</span></div>}</div></section>;
+export function Switch({ checked, onChange, label, disabled }) {
+  return (
+    <button
+      className={`toggle ${checked ? "on" : ""}`}
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      disabled={disabled}
+      onClick={() => onChange(!checked)}
+    >
+      <span />
+    </button>
+  );
 }
-const iconFor = field => field.type==='image'?Image:field.type==='link'?Link2:/时间|日期/.test(field.name)?CalendarDays:/表格/.test(field.name)?Table2:FileText;
-export function RulesPanel({config,busy,onAdd,onToggle,onEdit,onRemove,onInspect,expanded}) {
-  const [menu,setMenu]=useState(null);
-  return <section className={`panel rules-panel ${expanded?'expanded':''}`}><div className="panel-head"><Step number="2" title="字段规则"/><span className="panel-hint">已选择 {config.fields.filter(f=>f.enabled!==false).length} 个字段</span><button className="button compact" disabled={!!busy} onClick={onAdd}><Plus size={14}/>添加字段</button></div><div className="rule-list">{config.fields.length?config.fields.map((field,index)=>{const Icon=iconFor(field);return <div className={`rule-row ${field.enabled===false?'disabled-row':''}`} key={`${index}-${field.name}`}><GripVertical className="grip" size={16}/><Icon className={`field-icon field-color-${index%6}`} size={18}/><button className="field-name" disabled={!!busy} onClick={()=>onEdit(field,index)} title="编辑字段">{field.name}</button><span className="selector-kind">CSS</span><button className="selector-value" onClick={()=>onEdit(field,index)} disabled={!!busy} title={field.selector}>{field.selector}</button><Switch label={`启用${field.name}`} checked={field.enabled!==false} onChange={value=>onToggle(index,value)} disabled={!!busy}/><div className="rule-menu-wrap"><button className="icon-button" aria-label={`${field.name}的操作`} disabled={!!busy} onClick={()=>setMenu(menu===index?null:index)}><MoreHorizontal size={17}/></button>{menu===index&&<div className="rule-menu"><button onClick={()=>{setMenu(null);onEdit(field,index);}}>编辑字段</button><button onClick={()=>{setMenu(null);onRemove(index);}}>删除字段</button></div>}</div></div>;}):<div className="rules-empty"><ScanLine size={30} strokeWidth={1.4}/><p>网页中有哪些内容？</p><span>自动识别字段，或手动点选。</span><button className="button compact" disabled={!!busy} onClick={onInspect}>识别当前网页</button></div>}</div>{expanded&&<div className="rules-explanation"><CircleHelp size={15}/><span>关闭字段后，将使用其余字段采集。点击字段名称可以修改规则，采集前请先测试一页。</span></div>}</section>;
+function Step({ number, title, children }) {
+  return (
+    <div className="panel-title">
+      <span className="step-number">{number}</span>
+      <h2>{title}</h2>
+      {children}
+    </div>
+  );
 }
-function Stepper({value,onChange,min,max,step=1,label,suffix=''}) {return <div className="stepper"><button disabled={value<=min} onClick={()=>onChange(Math.max(min,Number((value-step).toFixed(1))))} aria-label={`减少${label}`}><Minus size={13}/></button><input aria-label={label} type="number" min={min} max={max} step={step} value={value} onChange={e=>onChange(Number(e.target.value))} onBlur={()=>onChange(Math.min(max,Math.max(min,Number(value)||min)))}/><button disabled={value>=max} onClick={()=>onChange(Math.min(max,Number((value+step).toFixed(1))))} aria-label={`增加${label}`}><Plus size={13}/></button>{suffix&&<span>{suffix}</span>}</div>;}
-export function PaginationPanel({config,update,busy,onPick}) {return <section className="panel pagination-panel"><div className="panel-head"><Step number="3" title="分页设置"/><label className="inline-label">启用分页<Switch checked={config.pagination!==false} label="启用分页" onChange={v=>update('pagination',v)} disabled={!!busy}/></label></div><fieldset disabled={!!busy||config.pagination===false}><div className="control-row"><span>下一页识别</span><button className="selector-button" onClick={onPick}><span className="selector-kind">CSS</span><span title={config.nextSelector}>{config.nextSelector||'自动识别'}</span><MousePointer2 size={13}/></button></div><div className="control-row"><span>最大页数</span><Stepper label="最多采集页数" value={config.maxPages} onChange={v=>update('maxPages',v)} min={1} max={50}/></div><div className="control-row"><span>请求间隔</span><Stepper label="采集间隔秒数" value={config.delayMs/1000} onChange={v=>update('delayMs',v*1000)} min={1} max={10} step={0.5} suffix="秒"/></div></fieldset></section>;}
-export function AutomationPanel({mode,setMode,time,setTime,busy,go}) {return <section className="panel automation-panel"><div className="panel-head"><Step number="4" title="自动化任务"/></div><div className="automation-options"><label><input type="radio" name="execution" checked={mode==='now'} disabled={!!busy} onChange={()=>setMode('now')}/>立即执行</label><label><input type="radio" name="execution" checked={mode==='daily'} disabled={!!busy} onChange={()=>setMode('daily')}/>每日<input aria-label="每日执行时间" type="time" value={time} disabled={!!busy} onChange={e=>{setMode('daily');setTime(e.target.value);}}/></label><button className="automation-link" onClick={()=>go('schedules')}><CalendarDays size={16}/>指定日期<ArrowUpRight size={13}/></button><span className="automation-note"><span/>程序打开时执行</span></div></section>;}
-export function Statistics({history,progress,running,elapsed}) {
-  const today=new Date().toLocaleDateString();const todayRows=history.filter(h=>new Date(h.createdAt).toLocaleDateString()===today).reduce((n,h)=>n+h.rowsCount,0);
-  const ended=history.filter(h=>['completed','error'].includes(h.status));const rate=ended.length?`${(ended.filter(h=>h.status==='completed').length/ended.length*100).toFixed(1)}%`:'—';
-  return <div className="statistics">{[[Database,'今日采集',todayRows.toLocaleString(),'条记录','blue'],[ShieldCheck,'成功率',rate,ended.length?`${ended.length} 次任务`:'等待首次采集','green'],[Clock3,'运行中任务',running?'1':'0',running?`正在采集第 ${progress.page||1} 页`:'当前空闲','blue'],[Activity,'本次耗时',elapsed?`${(elapsed/1000).toFixed(1)}s`:'—',progress.page?`${progress.page} 页已读取`:'等待任务开始','gold']].map(([Icon,label,value,note,color])=><div className="stat" key={label}><span className={`stat-icon ${color}`}><Icon size={22} strokeWidth={1.6}/></span><div><span className="stat-label">{label}</span><div className="stat-value">{value}<small>{note}</small></div></div></div>)}</div>;
+export function WebsitePanel({
+  config,
+  update,
+  site,
+  busy,
+  onInspect,
+  onOpen,
+  onPreview,
+  onDemo,
+  expanded,
+}) {
+  return (
+    <section className={`panel website-panel ${expanded ? "expanded" : ""}`}>
+      <div className="panel-head">
+        <Step number="1" title="网站预览" />
+        <span className="panel-hint">在网页中点选内容，或使用自动识别</span>
+        <button
+          className="text-button demo-link"
+          disabled={!!busy}
+          onClick={onDemo}
+        >
+          试用示例
+        </button>
+      </div>
+      <div className="browser-toolbar">
+        <label className="url-control">
+          <Globe2 size={16} />
+          <input
+            aria-label="网页网址"
+            placeholder="粘贴要采集的网页地址"
+            value={config.url}
+            disabled={!!busy}
+            onChange={(e) => update("url", e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") onInspect();
+            }}
+          />
+        </label>
+        <button
+          className="button compact open-page"
+          disabled={!!busy}
+          onClick={onOpen}
+        >
+          <ExternalLink size={14} />
+          <span>打开页面</span>
+        </button>
+        <button
+          className="button compact blue-outline"
+          disabled={!!busy}
+          onClick={onInspect}
+        >
+          {busy === "inspect" ? (
+            <Loader2 className="spinning" size={15} />
+          ) : (
+            <ScanLine size={15} />
+          )}
+          自动识别
+        </button>
+        <button
+          className="button compact test-rule"
+          disabled={!!busy}
+          onClick={onPreview}
+        >
+          <MousePointer2 size={14} />
+          测试规则
+        </button>
+      </div>
+      <div className="website-canvas">
+        {site?.image ? (
+          <>
+            <img
+              className="website-screenshot"
+              src={site.image}
+              alt={`${site.title}的真实网页预览`}
+            />
+            <button
+              className="screenshot-open"
+              onClick={onOpen}
+              disabled={!!busy}
+            >
+              <ExternalLink size={13} />
+              打开网页操作
+            </button>
+            <span className="preview-origin">
+              <span />
+              {site.isDemo ? "本地练习网站" : new URL(site.url).hostname}
+              <i>网页快照</i>
+            </span>
+          </>
+        ) : (
+          <div className="preview-empty">
+            <div className="preview-window">
+              <div />
+              <Globe2 size={49} strokeWidth={1} />
+            </div>
+            <h3>从你感兴趣的网页开始</h3>
+            <p>粘贴网址，点击「自动识别」查看内容。</p>
+            <button
+              className="button primary"
+              disabled={!!busy}
+              onClick={onDemo}
+            >
+              打开练习示例
+              <ArrowRight size={15} />
+            </button>
+          </div>
+        )}
+        {busy === "inspect" && (
+          <div className="preview-loading">
+            <Loader2 className="spinning" size={27} />
+            <strong>正在读取网页</strong>
+            <span>生成预览并识别可采集的字段</span>
+          </div>
+        )}
+      </div>
+    </section>
+  );
 }
-export function LogPanel({logs,running,elapsed,onClear,expanded}) {return <section className={`panel log-panel ${expanded?'expanded':''}`}><div className="panel-head"><h2>运行日志</h2><span className="log-live"><i className={running?'live':''}/>{running?'运行中':logs.length?'已就绪':'等待任务'}{running&&` ${String(Math.floor(elapsed/60000)).padStart(2,'0')}:${String(Math.floor(elapsed/1000)%60).padStart(2,'0')}`}</span><button className="icon-button clear-logs" aria-label="清空运行日志" disabled={!logs.length} onClick={onClear}><Trash2 size={13}/><span>清空</span></button></div><div className="log-list">{logs.length?logs.slice(expanded?-100:-7).map(item=><div className={`log-entry ${item.status}`} key={item.id}><span className="timeline-dot"/><time>{item.time}</time><div><strong>{item.message}</strong>{item.detail&&<p title={item.detail}>{item.detail}</p>}</div></div>):<div className="log-empty"><Activity size={31} strokeWidth={1.25}/><p>每一步，都有记录</p><span>开始采集后，运行进度会显示在这里。</span></div>}</div><div className="log-foot"><span className="status-light"/>所有操作均在本机运行</div></section>;}
-export function DataPreview({rows,busy,onExport,onClean,onExpand,expanded,format,setFormat,progress}) {
-  const [filter,setFilter]=useState('');const [page,setPage]=useState(0);const [selected,setSelected]=useState(new Set());const [detail,setDetail]=useState(null);
-  useEffect(()=>{setPage(0);setSelected(new Set());setDetail(null);},[rows]);
-  const columns=useMemo(()=>[...new Set(rows.flatMap(row=>Object.keys(row)))],[rows]);
-  const filtered=useMemo(()=>rows.map((row,index)=>({row,index})).filter(({row})=>!filter||Object.values(row).some(v=>String(v).toLowerCase().includes(filter.toLowerCase()))),[rows,filter]);
-  const size=expanded?25:5;const pageCount=Math.max(1,Math.ceil(filtered.length/size));const visible=filtered.slice(page*size,(page+1)*size);const all=visible.length>0&&visible.every(({index})=>selected.has(index));
-  const toggleAll=()=>setSelected(current=>{const next=new Set(current);visible.forEach(({index})=>all?next.delete(index):next.add(index));return next;});
-  const exported=selected.size?rows.filter((_,index)=>selected.has(index)):filtered.map(item=>item.row);
-  return <section className={`panel data-panel ${expanded?'expanded':''}`}><div className="panel-head"><div className="panel-title"><Table2 className="data-title-icon" size={19}/><h2>{expanded?'全部采集数据':'数据预览'}</h2></div><span className="panel-hint">共 {rows.length.toLocaleString()} 条{!expanded&&'（显示前 5 条）'}{progress?.status==='preview'&&<span className="preview-label">预览</span>}</span><div className="data-actions">{!expanded&&<button className="button compact" onClick={onExpand}><Maximize2 size={13}/>预览全部数据</button>}<div className="export-group"><button className="button compact" disabled={!!busy||!exported.length} onClick={()=>onExport(exported,format)}><Download size={14}/>{selected.size?`导出 ${selected.size} 条`:'导出数据'}</button><select aria-label="导出格式" value={format} onChange={e=>setFormat(e.target.value)}><option value="xlsx">Excel</option><option value="csv">CSV</option><option value="json">JSON</option></select></div><button className="button compact blue-outline" disabled={!!busy} onClick={onClean}><Brush size={14}/>数据清洗</button></div></div>{expanded&&<div className="data-filter"><Search size={16}/><input aria-label="搜索采集数据" placeholder="搜索结果中的内容…" value={filter} onChange={e=>{setFilter(e.target.value);setPage(0);}}/><span>{filtered.length} 条匹配</span></div>}<div className="table-scroll">{rows.length?<table className="data-table"><thead><tr><th className="select-column"><input type="checkbox" aria-label="选择本页数据" checked={all} onChange={toggleAll}/></th><th className="index-column">#</th>{columns.slice(0,expanded?columns.length:5).map(col=><th key={col}>{col}</th>)}<th className="operation-column">操作</th></tr></thead><tbody>{visible.map(({row,index})=><tr key={index} className={selected.has(index)?'selected':''}><td><input type="checkbox" aria-label={`选择第 ${index+1} 条`} checked={selected.has(index)} onChange={()=>setSelected(c=>{const n=new Set(c);n.has(index)?n.delete(index):n.add(index);return n;})}/></td><td className="muted">{index+1}</td>{columns.slice(0,expanded?columns.length:5).map(col=><td key={col} title={String(row[col]??'')}><span className={/^https?:\/\//.test(String(row[col]))?'link-cell':''}>{String(row[col]??'')}</span></td>)}<td><button className="icon-button" aria-label={`查看第 ${index+1} 条详情`} onClick={()=>setDetail({row,index})}><Search size={14}/></button><button className="icon-button" aria-label={`展开第 ${index+1} 条`} onClick={()=>setDetail({row,index})}><MoreHorizontal size={16}/></button></td></tr>)}</tbody></table>:<div className="data-empty"><Inbox size={32} strokeWidth={1.2}/><div><h3>采集到的内容，会在这里整齐呈现</h3><p>先测试规则，确认后开始采集。</p></div></div>}</div>{expanded&&<div className="table-pagination"><span>已选 {selected.size} 条 · 每页 25 条</span><div><button className="icon-button" aria-label="上一页数据" disabled={page===0} onClick={()=>setPage(p=>p-1)}><ChevronLeft size={17}/></button><span>{page+1} / {pageCount}</span><button className="icon-button" aria-label="下一页数据" disabled={page>=pageCount-1} onClick={()=>setPage(p=>p+1)}><ChevronRight size={17}/></button></div></div>}{detail&&<div className="record-detail"><div className="panel-head"><h2>第 {detail.index+1} 条数据</h2><button className="icon-button" aria-label="关闭数据详情" onClick={()=>setDetail(null)}><X size={17}/></button></div><dl>{Object.entries(detail.row).map(([key,value])=><div key={key}><dt>{key}</dt><dd>{String(value)}</dd></div>)}</dl></div>}</section>;
+const iconFor = (field) =>
+  field.type === "image"
+    ? Image
+    : field.type === "link"
+      ? Link2
+      : /时间|日期/.test(field.name)
+        ? CalendarDays
+        : /表格/.test(field.name)
+          ? Table2
+          : FileText;
+export function RulesPanel({
+  config,
+  busy,
+  onAdd,
+  onToggle,
+  onEdit,
+  onRemove,
+  onInspect,
+  expanded,
+}) {
+  const [menu, setMenu] = useState(null);
+  return (
+    <section className={`panel rules-panel ${expanded ? "expanded" : ""}`}>
+      <div className="panel-head">
+        <Step number="2" title="字段规则" />
+        <span className="panel-hint">
+          已选择 {config.fields.filter((f) => f.enabled !== false).length}{" "}
+          个字段
+        </span>
+        <button className="button compact" disabled={!!busy} onClick={onAdd}>
+          <Plus size={14} />
+          添加字段
+        </button>
+      </div>
+      <div className="rule-list">
+        {config.fields.length ? (
+          config.fields.map((field, index) => {
+            const Icon = iconFor(field);
+            return (
+              <div
+                className={`rule-row ${field.enabled === false ? "disabled-row" : ""}`}
+                key={`${index}-${field.name}`}
+              >
+                <GripVertical className="grip" size={16} />
+                <Icon
+                  className={`field-icon field-color-${index % 6}`}
+                  size={18}
+                />
+                <button
+                  className="field-name"
+                  disabled={!!busy}
+                  onClick={() => onEdit(field, index)}
+                  title="编辑字段"
+                >
+                  {field.name}
+                </button>
+                <span className="selector-kind">CSS</span>
+                <button
+                  className="selector-value"
+                  onClick={() => onEdit(field, index)}
+                  disabled={!!busy}
+                  title={field.selector}
+                >
+                  {field.selector}
+                </button>
+                <Switch
+                  label={`启用${field.name}`}
+                  checked={field.enabled !== false}
+                  onChange={(value) => onToggle(index, value)}
+                  disabled={!!busy}
+                />
+                <div className="rule-menu-wrap">
+                  <button
+                    className="icon-button"
+                    aria-label={`${field.name}的操作`}
+                    disabled={!!busy}
+                    onClick={() => setMenu(menu === index ? null : index)}
+                  >
+                    <MoreHorizontal size={17} />
+                  </button>
+                  {menu === index && (
+                    <div className="rule-menu">
+                      <button
+                        onClick={() => {
+                          setMenu(null);
+                          onEdit(field, index);
+                        }}
+                      >
+                        编辑字段
+                      </button>
+                      <button
+                        onClick={() => {
+                          setMenu(null);
+                          onRemove(index);
+                        }}
+                      >
+                        删除字段
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          <div className="rules-empty">
+            <ScanLine size={30} strokeWidth={1.4} />
+            <p>网页中有哪些内容？</p>
+            <span>自动识别字段，或手动点选。</span>
+            <button
+              className="button compact"
+              disabled={!!busy}
+              onClick={onInspect}
+            >
+              识别当前网页
+            </button>
+          </div>
+        )}
+      </div>
+      {expanded && (
+        <div className="rules-explanation">
+          <CircleHelp size={15} />
+          <span>
+            关闭字段后，将使用其余字段采集。点击字段名称可以修改规则，采集前请先测试一页。
+          </span>
+        </div>
+      )}
+    </section>
+  );
+}
+function Stepper({ value, onChange, min, max, step = 1, label, suffix = "" }) {
+  return (
+    <div className="stepper">
+      <button
+        disabled={value <= min}
+        onClick={() =>
+          onChange(Math.max(min, Number((value - step).toFixed(1))))
+        }
+        aria-label={`减少${label}`}
+      >
+        <Minus size={13} />
+      </button>
+      <input
+        aria-label={label}
+        type="number"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        onBlur={() =>
+          onChange(Math.min(max, Math.max(min, Number(value) || min)))
+        }
+      />
+      <button
+        disabled={value >= max}
+        onClick={() =>
+          onChange(Math.min(max, Number((value + step).toFixed(1))))
+        }
+        aria-label={`增加${label}`}
+      >
+        <Plus size={13} />
+      </button>
+      {suffix && <span>{suffix}</span>}
+    </div>
+  );
+}
+export function PaginationPanel({ config, update, busy, onPick }) {
+  return (
+    <section className="panel pagination-panel">
+      <div className="panel-head">
+        <Step number="3" title="分页设置" />
+        <label className="inline-label">
+          启用分页
+          <Switch
+            checked={config.pagination !== false}
+            label="启用分页"
+            onChange={(v) => update("pagination", v)}
+            disabled={!!busy}
+          />
+        </label>
+      </div>
+      <fieldset disabled={!!busy || config.pagination === false}>
+        <div className="control-row">
+          <span>下一页识别</span>
+          <button className="selector-button" onClick={onPick}>
+            <span className="selector-kind">CSS</span>
+            <span title={config.nextSelector}>
+              {config.nextSelector || "自动识别"}
+            </span>
+            <MousePointer2 size={13} />
+          </button>
+        </div>
+        <div className="control-row">
+          <span>最大页数</span>
+          <Stepper
+            label="最多采集页数"
+            value={config.maxPages}
+            onChange={(v) => update("maxPages", v)}
+            min={1}
+            max={50}
+          />
+        </div>
+        <div className="control-row">
+          <span>请求间隔</span>
+          <Stepper
+            label="采集间隔秒数"
+            value={config.delayMs / 1000}
+            onChange={(v) => update("delayMs", v * 1000)}
+            min={1}
+            max={10}
+            step={0.5}
+            suffix="秒"
+          />
+        </div>
+      </fieldset>
+    </section>
+  );
+}
+export function AutomationPanel({ mode, setMode, time, setTime, busy, go }) {
+  return (
+    <section className="panel automation-panel">
+      <div className="panel-head">
+        <Step number="4" title="自动化任务" />
+      </div>
+      <div className="automation-options">
+        <label>
+          <input
+            type="radio"
+            name="execution"
+            checked={mode === "now"}
+            disabled={!!busy}
+            onChange={() => setMode("now")}
+          />
+          立即执行
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="execution"
+            checked={mode === "daily"}
+            disabled={!!busy}
+            onChange={() => setMode("daily")}
+          />
+          每日
+          <input
+            aria-label="每日执行时间"
+            type="time"
+            value={time}
+            disabled={!!busy}
+            onChange={(e) => {
+              setMode("daily");
+              setTime(e.target.value);
+            }}
+          />
+        </label>
+        <button className="automation-link" onClick={() => go("schedules")}>
+          <CalendarDays size={16} />
+          指定日期
+          <ArrowUpRight size={13} />
+        </button>
+        <span className="automation-note">
+          <span />
+          程序打开时执行
+        </span>
+      </div>
+    </section>
+  );
+}
+export function Statistics({ history, progress, running, elapsed }) {
+  const today = new Date().toLocaleDateString();
+  const todayRows = history
+    .filter((h) => new Date(h.createdAt).toLocaleDateString() === today)
+    .reduce((n, h) => n + h.rowsCount, 0);
+  const ended = history.filter((h) =>
+    ["completed", "error"].includes(h.status),
+  );
+  const rate = ended.length
+    ? `${((ended.filter((h) => h.status === "completed").length / ended.length) * 100).toFixed(1)}%`
+    : "—";
+  return (
+    <div className="statistics">
+      {[
+        [Database, "今日采集", todayRows.toLocaleString(), "条记录", "blue"],
+        [
+          ShieldCheck,
+          "成功率",
+          rate,
+          ended.length ? `${ended.length} 次任务` : "等待首次采集",
+          "green",
+        ],
+        [
+          Clock3,
+          "运行中任务",
+          running ? "1" : "0",
+          running ? `正在采集第 ${progress.page || 1} 页` : "当前空闲",
+          "blue",
+        ],
+        [
+          Activity,
+          "本次耗时",
+          elapsed ? `${(elapsed / 1000).toFixed(1)}s` : "—",
+          progress.page ? `${progress.page} 页已读取` : "等待任务开始",
+          "gold",
+        ],
+      ].map(([Icon, label, value, note, color]) => (
+        <div className="stat" key={label}>
+          <span className={`stat-icon ${color}`}>
+            <Icon size={22} strokeWidth={1.6} />
+          </span>
+          <div>
+            <span className="stat-label">{label}</span>
+            <div className="stat-value">
+              {value}
+              <small>{note}</small>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+export function LogPanel({ logs, running, elapsed, onClear, expanded }) {
+  return (
+    <section className={`panel log-panel ${expanded ? "expanded" : ""}`}>
+      <div className="panel-head">
+        <h2>运行日志</h2>
+        <span className="log-live">
+          <i className={running ? "live" : ""} />
+          {running ? "运行中" : logs.length ? "已就绪" : "等待任务"}
+          {running &&
+            ` ${String(Math.floor(elapsed / 60000)).padStart(2, "0")}:${String(Math.floor(elapsed / 1000) % 60).padStart(2, "0")}`}
+        </span>
+        <button
+          className="icon-button clear-logs"
+          aria-label="清空运行日志"
+          disabled={!logs.length}
+          onClick={onClear}
+        >
+          <Trash2 size={13} />
+          <span>清空</span>
+        </button>
+      </div>
+      <div className="log-list">
+        {logs.length ? (
+          logs.slice(expanded ? -100 : -7).map((item) => (
+            <div className={`log-entry ${item.status}`} key={item.id}>
+              <span className="timeline-dot" />
+              <time>{item.time}</time>
+              <div>
+                <strong>{item.message}</strong>
+                {item.detail && <p title={item.detail}>{item.detail}</p>}
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="log-empty">
+            <Activity size={31} strokeWidth={1.25} />
+            <p>每一步，都有记录</p>
+            <span>开始采集后，运行进度会显示在这里。</span>
+          </div>
+        )}
+      </div>
+      <div className="log-foot">
+        <span className="status-light" />
+        所有操作均在本机运行
+      </div>
+    </section>
+  );
+}
+export function DataPreview({
+  rows,
+  busy,
+  onExport,
+  onClean,
+  onExpand,
+  onSave,
+  saved,
+  expanded,
+  format,
+  setFormat,
+  progress,
+}) {
+  const [filter, setFilter] = useState("");
+  const [page, setPage] = useState(0);
+  const [selected, setSelected] = useState(new Set());
+  const [detail, setDetail] = useState(null);
+  useEffect(() => {
+    setPage(0);
+    setSelected(new Set());
+    setDetail(null);
+  }, [rows]);
+  const columns = useMemo(
+    () => [...new Set(rows.flatMap((row) => Object.keys(row)))],
+    [rows],
+  );
+  const filtered = useMemo(
+    () =>
+      rows
+        .map((row, index) => ({ row, index }))
+        .filter(
+          ({ row }) =>
+            !filter ||
+            Object.values(row).some((v) =>
+              String(v).toLowerCase().includes(filter.toLowerCase()),
+            ),
+        ),
+    [rows, filter],
+  );
+  const size = expanded ? 25 : 5;
+  const pageCount = Math.max(1, Math.ceil(filtered.length / size));
+  const visible = filtered.slice(page * size, (page + 1) * size);
+  const all =
+    visible.length > 0 && visible.every(({ index }) => selected.has(index));
+  const toggleAll = () =>
+    setSelected((current) => {
+      const next = new Set(current);
+      visible.forEach(({ index }) =>
+        all ? next.delete(index) : next.add(index),
+      );
+      return next;
+    });
+  const exported = selected.size
+    ? rows.filter((_, index) => selected.has(index))
+    : filtered.map((item) => item.row);
+  return (
+    <section className={`panel data-panel ${expanded ? "expanded" : ""}`}>
+      <div className="panel-head">
+        <div className="panel-title">
+          <Table2 className="data-title-icon" size={19} />
+          <h2>{expanded ? "全部采集数据" : "数据预览"}</h2>
+        </div>
+        <span className="panel-hint">
+          共 {rows.length.toLocaleString()} 条{!expanded && "（显示前 5 条）"}
+          {progress?.status === "preview" && (
+            <span className="preview-label">预览</span>
+          )}
+        </span>
+        <div className="data-actions">
+          {!expanded && (
+            <button className="button compact" onClick={onExpand}>
+              <Maximize2 size={13} />
+              预览全部数据
+            </button>
+          )}
+          <div className="export-group">
+            <button
+              className="button compact"
+              disabled={!!busy || !exported.length}
+              onClick={() => onExport(exported, format)}
+            >
+              <Download size={14} />
+              {selected.size ? `导出 ${selected.size} 条` : "导出数据"}
+            </button>
+            <select
+              aria-label="导出格式"
+              value={format}
+              onChange={(e) => setFormat(e.target.value)}
+            >
+              <option value="xlsx">Excel</option>
+              <option value="csv">CSV</option>
+              <option value="json">JSON</option>
+            </select>
+          </div>
+          <button
+            className="button compact blue-outline"
+            disabled={!!busy}
+            onClick={onClean}
+          >
+            <Brush size={14} />
+            数据清洗
+          </button>
+        </div>
+      </div>
+      {rows.length > 0 && (
+        <div className="result-retention">
+          <span className={saved ? "saved" : ""}>
+            <i />
+            {saved ? "已保存，可继续查看或另存" : "当前仅预览，确认后再保存"}
+          </span>
+          <button
+            className="button compact primary"
+            disabled={!!busy}
+            onClick={onSave}
+          >
+            <Save size={14} />
+            {saved ? "另存到文件库" : "保存到文件库"}
+          </button>
+        </div>
+      )}
+      {expanded && (
+        <div className="data-filter">
+          <Search size={16} />
+          <input
+            aria-label="搜索采集数据"
+            placeholder="搜索结果中的内容…"
+            value={filter}
+            onChange={(e) => {
+              setFilter(e.target.value);
+              setPage(0);
+            }}
+          />
+          <span>{filtered.length} 条匹配</span>
+        </div>
+      )}
+      <div className="table-scroll">
+        {rows.length ? (
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th className="select-column">
+                  <input
+                    type="checkbox"
+                    aria-label="选择本页数据"
+                    checked={all}
+                    onChange={toggleAll}
+                  />
+                </th>
+                <th className="index-column">#</th>
+                {columns.slice(0, expanded ? columns.length : 5).map((col) => (
+                  <th key={col}>{col}</th>
+                ))}
+                <th className="operation-column">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visible.map(({ row, index }) => (
+                <tr
+                  key={index}
+                  className={selected.has(index) ? "selected" : ""}
+                >
+                  <td>
+                    <input
+                      type="checkbox"
+                      aria-label={`选择第 ${index + 1} 条`}
+                      checked={selected.has(index)}
+                      onChange={() =>
+                        setSelected((c) => {
+                          const n = new Set(c);
+                          n.has(index) ? n.delete(index) : n.add(index);
+                          return n;
+                        })
+                      }
+                    />
+                  </td>
+                  <td className="muted">{index + 1}</td>
+                  {columns
+                    .slice(0, expanded ? columns.length : 5)
+                    .map((col) => (
+                      <td key={col} title={String(row[col] ?? "")}>
+                        <span
+                          className={
+                            /^https?:\/\//.test(String(row[col]))
+                              ? "link-cell"
+                              : ""
+                          }
+                        >
+                          {String(row[col] ?? "")}
+                        </span>
+                      </td>
+                    ))}
+                  <td>
+                    <button
+                      className="icon-button"
+                      aria-label={`查看第 ${index + 1} 条详情`}
+                      onClick={() => setDetail({ row, index })}
+                    >
+                      <Search size={14} />
+                    </button>
+                    <button
+                      className="icon-button"
+                      aria-label={`展开第 ${index + 1} 条`}
+                      onClick={() => setDetail({ row, index })}
+                    >
+                      <MoreHorizontal size={16} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <div className="data-empty">
+            <Inbox size={32} strokeWidth={1.2} />
+            <div>
+              <h3>采集到的内容，会在这里整齐呈现</h3>
+              <p>先测试规则，确认后开始采集。</p>
+            </div>
+          </div>
+        )}
+      </div>
+      {expanded && (
+        <div className="table-pagination">
+          <span>已选 {selected.size} 条 · 每页 25 条</span>
+          <div>
+            <button
+              className="icon-button"
+              aria-label="上一页数据"
+              disabled={page === 0}
+              onClick={() => setPage((p) => p - 1)}
+            >
+              <ChevronLeft size={17} />
+            </button>
+            <span>
+              {page + 1} / {pageCount}
+            </span>
+            <button
+              className="icon-button"
+              aria-label="下一页数据"
+              disabled={page >= pageCount - 1}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              <ChevronRight size={17} />
+            </button>
+          </div>
+        </div>
+      )}
+      {detail && (
+        <div className="record-detail">
+          <div className="panel-head">
+            <h2>第 {detail.index + 1} 条数据</h2>
+            <button
+              className="icon-button"
+              aria-label="关闭数据详情"
+              onClick={() => setDetail(null)}
+            >
+              <X size={17} />
+            </button>
+          </div>
+          <dl>
+            {Object.entries(detail.row).map(([key, value]) => (
+              <div key={key}>
+                <dt>{key}</dt>
+                <dd>{String(value)}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      )}
+    </section>
+  );
 }
